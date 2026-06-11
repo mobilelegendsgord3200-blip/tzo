@@ -1,13 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="my">
 <head>
 <meta charset="UTF-8">
-<title>School App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>အလ်ဟဖ်လသု - ကျောင်း စီမံခန့်ခွဲမှု</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+.teacher-card,.class-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+.timetable-wrap{overflow:auto}
+.tt-table{min-width:700px;width:100%;border-collapse:collapse}
+.tt-table th{padding:12px 14px;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;font-size:13px;text-align:center}
+.tt-table th:first-child{text-align:left}
+.tt-cell{padding:5px;vertical-align:middle}
+.tt-entry{border-radius:7px;padding:7px 5px;text-align:center;font-size:11px;position:relative}
+.tt-add{width:100%;background:transparent;border:2px dashed #e5e7eb;border-radius:7px;padding:8px;cursor:pointer;color:#d1d5db;font-size:16px}
+.tt-add:hover{border-color:#3b82f6;color:#3b82f6}
+.tt-del{position:absolute;top:1px;right:2px;background:transparent;border:none;cursor:pointer;color:#9ca3af;font-size:11px}
+.progress-bar{height:6px;background:#f1f5f9;border-radius:999px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:999px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.empty{padding:40px;text-align:center;color:#9ca3af}
+#toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:#0f172a;color:#fff;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;display:none}
+</style>
 </head>
 <body>
-<h1>Loading...</h1>
-<script>
-window.location.href = "https://school-app.vercel.app";
+<div id="sidebar">
+  <div class="logo">
+    <h2>🏫 အလ်ဟဖ်လသု</h2>
+    <p>ကျောင်း စီမံခန့်ခွဲမှု</p>
+  </div>
+  <nav>
+    <button class="active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button onclick="showPage('students',this)">👨‍🎓 ကျောင်းသား/သူ</button>
+    <button onclick="showPage('teachers',this)">👨‍🏫 ဆရာ/မ</button>
+    <button onclick="showPage('classes',this)">🏫 တန်းများ</button>
+    <button onclick="showPage('subjects',this)">📚 ဘာသာရပ်</button>
+    <button onclick="showPage('timetable',this)">🗓 အချိန်ဇယား</button>
+  </nav>
+</div>
+<div id="main">
+<div id="page-dashboard" class="page active">
+  <div class="page-header"><div><h2>Dashboard</h2><p>ကျောင်းဆိုင်ရာ အချက်အလက်</p></div></div>
+  <div class="stats-grid">
+    <div class="stat-card" style="--color:#3b82f6"><div class="val" id="stat-students">0</div><div class="lbl">👨‍🎓 ကျောင်းသား/သူ</div></div>
+    <div class="stat-card" style="--color:#8b5cf6"><div class="val" id="stat-teachers">0</div><div class="lbl">👨‍🏫 ဆရာ/မ</div></div>
+    <div class="stat-card" style="--color:#f59e0b"><div class="val" id="stat-classes">0</div><div class="lbl">🏫 တန်းများ</div></div>
+    <div class="stat-card" style="--color:#10b981"><div class="val" id="stat-subjects">0</div><div class="lbl">📚 ဘာသာရပ်</div></div>
+  </div>
+  <div class="card"><table><thead><tr><th>နောက်ဆုံးဝင်ရောက်သူ</th><th>တန်း</th><th>ဝင်ရောက်ရက်</th></tr></thead><tbody id="dash-recent"></tbody></table></div>
+</div>
+<div id="page-students" class="page">
+  <div class="page-header"><div><h2>ကျောင်းသား/သူ</h2><p id="student-count">0 ဦး</p></div><button class="btn btn-primary" onclick="openModal('student')">+ ထည့်သည်</button></div>
+  <div class="search-bar"><input id="student-search" placeholder="နာမည် ရှာသည်..." oninput="renderStudents()"><select id="student-filter" onchange="renderStudents()"><option value="">တန်းအားလုံး</option></select></div>
+  <div class="card"><table><thead><tr><th>နာမည်</th><th>ကျား/မ</th><th>တန်း</th><th>မွေးသက္ကရာဇ်</th><th>ဝင်ရောက်ရက်</th><th>ဖုန်း</th><th>လုပ်ဆောင်</th></tr></thead><tbody id="student-list"></tbody></table></div>
+</div>
+<div id="page-teachers" class="page">
+  <div class="page-header"><div><h2>ဆရာ/မ</h2><p id="teacher-count">0 ဦး</p></div><button class="btn btn-primary" onclick="openModal('teacher')">+ ထည့်သည်</button></div>
+  <div class="grid-cards" id="teacher-list"></div>
+</div>
+<div id="page-classes" class="page">
+  <div class="page-header"><div><h2>တန်းများ</h2><p id="class-count">0 ခု</p></div><button class="btn btn-primary" onclick="openModal('class')">+ ထည့်သည်</button></div>
+  <div class="grid-cards" id="class-list"></div>
+</div>
+<div id="page-subjects" class="page">
+  <div class="page-header"><div><h2>ဘာသာရပ်များ</h2><p id="subject-count">0 ဘာသာ</p></div><button class="btn btn-primary" onclick="openModal('subject')">+ ထည့်သည်</button></div>
+  <div class="card"><table><thead><tr><th>ဘာသာရပ်</th><th>ကုဒ်</th><th>တာဝန်ခံ ဆရာ/မ</th><th>လုပ်ဆောင်</th></tr></thead><tbody id="subject-list"></tbody></table></div>
+</div>
+<div id="page-timetable" class="page">
+  <div class="page-header"><div><h2>အချိန်ဇယား</h2></div><select id="tt-class-select" onchange="renderTimetable()" style="padding:9px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none"></select></div>
+  <div class="card timetable-wrap"><table class="tt-table" id="tt-table"></table></div>
+</div>
+</div>
+sb.from('classes').update(d).eq('id',id);}else{await sb.from('classes').insert(d);}closeModal('class');toast('✅ သိမ်းဆည်းပြီးပါပြီ');await loadAll();}
+async function saveSubject(){const id=document.getElementById('sub-id').value;const d={name:document.getElementById('sub-name').value,code:document.getElementById('sub-code').value,teacher_id:parseInt(document.getElementById('sub-teacher').value)||null};if(!d.name){alert('ဘာသာရပ်အမည် ဖြည့်ပေးပါ');return;}if(id){await sb.from('subjects').update(d).eq('id',id);}else{await sb.from('subjects').insert(d);}closeModal('subject');toast('✅ သိမ်းဆည်းပြီးပါပြီ');await loadAll();}
+async function saveTT(){const cid=parseInt(document.getElementById('tt-class-select').value);const d={class_id:cid,day:document.getElementById('tt-day').value,period:parseInt(document.getElementById('tt-period').value),subject_id:parseInt(document.getElementById('tt-subject').value),teacher_id:parseInt(document.getElementById('tt-teacher').value)};await sb.from('timetable').insert(d);closeModal('tt');toast('✅ ထည့်သွင်းပြီးပါပြီ');await loadAll();renderTimetable();}
+async function del(table,id){if(!confirm('ဖျက်မည်လား?'))return;await sb.from(table).delete().eq('id',id);toast('🗑 ဖျက်ပြီးပါပြီ');await loadAll();}
+async function delTT(id){await sb.from('timetable').delete().eq('id',id);toast('🗑 ဖျက်ပြီးပါပြီ');await loadAll();renderTimetable();}
+loadAll();
 </script>
 </body>
 </html>
