@@ -62,6 +62,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             border-radius: 8px;
             overflow: hidden;
+            margin-top: 10px;
         }
         th, td {
             padding: 12px 15px;
@@ -74,6 +75,18 @@
         }
         tr:nth-child(even) {
             background-color: #f2f2f2;
+        }
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-delete:hover {
+            background-color: #da190b;
         }
     </style>
 </head>
@@ -112,6 +125,7 @@
                 <th>စဉ်</th>
                 <th>အမည်</th>
                 <th>အတန်း</th>
+                <th>လုပ်ဆောင်ချက်</th>
             </tr>
         </thead>
         <tbody>
@@ -119,8 +133,8 @@
     </table>
 
     <script>
-        let count = 1;
-
+        // Web Page ဖွင့်လိုက်တာနဲ့ အရင်သိမ်းထားတဲ့ ဒေတာတွေကို ဆွဲထုတ်ပြသခြင်း
+        document.addEventListener("DOMContentLoaded", loadStudents);
         function addStudent() {
             const nameInput = document.getElementById("studentName");
             const classSelect = document.getElementById("studentClass");
@@ -133,18 +147,47 @@
                 return;
             }
 
-            const table = document.getElementById("studentTable").getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-          const cell1 = newRow.insertCell(0);
-            const cell2 = newRow.insertCell(1);
-            const cell3 = newRow.insertCell(2);
+            // ဒေတာအသစ်ကို Object ပုံစံလုပ်ခြင်း
+            const student = { name: name, className: className };
 
-            cell1.innerHTML = count++;
-            cell2.innerHTML = name;
-            cell3.innerHTML = className;
+            // လက်ရှိ သိမ်းထားတဲ့ စာရင်းတွေကို ယူ၊ အသစ်တစ်ခုထပ်ပေါင်းပြီး ပြန်သိမ်းခြင်း
+            let students = JSON.parse(localStorage.getItem("students")) || [];
+            students.push(student);
+            localStorage.setItem("students", JSON.stringify(students));
 
-            // ထည့်ပြီးရင် text box ကို အလွတ်ပြန်လုပ်ပေးခြင်း
+            // ဇယားကို Update လုပ်ပြီး တန်ဖိုးတွေကို ရှင်းထုတ်ခြင်း
+            loadStudents();
             nameInput.value = "";
+        }
+
+        function loadStudents() {
+            const tableBody = document.getElementById("studentTable").getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = ""; // ဇယားအဟောင်းကို ရှင်းထုတ်
+
+            let students = JSON.parse(localStorage.getItem("students")) || [];
+
+            students.forEach((student, index) => {
+                const newRow = tableBody.insertRow();
+
+                const cell1 = newRow.insertCell(0);
+                const cell2 = newRow.insertCell(1);
+                const cell3 = newRow.insertCell(2);
+                const cell4 = newRow.insertCell(3);
+
+                cell1.innerHTML = index + 1;
+                cell2.innerHTML = student.name;
+                cell3.innerHTML = student.className;
+                cell4.innerHTML = <button class="btn-delete" onclick="deleteStudent(${index})">ဖျက်ရန်</button>;
+            });
+        }
+
+        function deleteStudent(index) {
+            if (confirm("ဤကျောင်းသားစာရင်းကို ဖျက်ရန် သေချာပါသလား?")) {
+                let students = JSON.parse(localStorage.getItem("students")) || [];
+                students.splice(index, 1); // ရွေးချယ်ထားတဲ့အကြောင်းကို ဖျက်ခြင်း
+                localStorage.setItem("students", JSON.stringify(students));
+                loadStudents(); // ဇယားကို ပြန်ပြခြင်း
+            }
         }
     </script>
 
