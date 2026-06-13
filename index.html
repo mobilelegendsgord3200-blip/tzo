@@ -1,72 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="my">
 <head>
-  <title>School System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ကျောင်းသားကျောင်းသူများ အမည်စာရင်း</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 600px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #008CBA;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
 
-<h2>Student Management System</h2>
+    <div class="container">
+        <h2>ကျောင်းသားအမည်စာရင်း ထည့်သွင်းရန်</h2>
+        
+        <div class="form-group">
+            <label for="studentName">ကျောင်းသား/သူ အမည်:</label>
+            <input type="text" id="studentName" placeholder="အမည်ရိုက်ထည့်ပါ">
+        </div>
 
-<h3>Add Student</h3>
+        <div class="form-group">
+            <label for="studentClass">အတန်း:</label>
+            <select id="studentClass">
+                <option value="သူငယ်တန်းလေး (က)">သူငယ်တန်းလေး (က)</option>
+                <option value="သူငယ်တန်းလေး (ခ)">သူငယ်တန်းလေး (ခ)</option>
+                <option value="သူငယ်တန်းကြီး (က)">သူငယ်တန်းကြီး (က)</option>
+                <option value="သူငယ်တန်းကြီး (ခ)">သူငယ်တန်းကြီး (ခ)</option>
+                <option value="ပထမတန်း">ပထမတန်း</option>
+                <option value="ဒုတိယတန်း">ဒုတိယတန်း</option>
+                <option value="တတိယတန်း">တတိယတန်း</option>
+                <option value="စတုတ္ထတန်း">စတုတ္ထတန်း</option>
+            </select>
+        </div>
 
-<input id="name" placeholder="အမည်"><br><br>
-<input id="father" placeholder="အဖအမည်"><br><br>
-<input id="phone" placeholder="ဖုန်း"><br><br>
-<input id="class" placeholder="အတန်း"><br><br>
+        <button onclick="addStudent()">စာရင်းထည့်ရန်</button>
+    </div>
 
-<button onclick="addStudent()">Save</button>
+    <h3>ကျောင်းသားကျောင်းသူများ၏ အမည်စာရင်း ဇယား</h3>
+    
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>စဉ်</th>
+                <th>အမည်</th>
+                <th>အတန်း</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
 
-<hr>
+    <script>
+        let count = 1;
 
-<h3>Student List</h3>
+        function addStudent() {
+            const nameInput = document.getElementById("studentName");
+            const classSelect = document.getElementById("studentClass");
+            
+            const name = nameInput.value.trim();
+            const className = classSelect.value;
 
-<table border="1" width="100%">
-  <thead>
-    <tr>
-      <th>အမည်</th>
-      <th>အဖအမည်</th>
-      <th>ဖုန်း</th>
-      <th>အတန်း</th>
-    </tr>
-  </thead>
-  <tbody id="list"></tbody>
-</table>
+            if (name === "") {
+                alert("ကျောင်းသားအမည်ကို ရိုက်ထည့်ပေးပါဦး။");
+                return;
+            }
 
-<script>
-let students = [];
+            const table = document.getElementById("studentTable").getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+          const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            const cell3 = newRow.insertCell(2);
 
-function addStudent() {
-  let name = document.getElementById("name").value;
-  let father = document.getElementById("father").value;
-  let phone = document.getElementById("phone").value;
-  let cls = document.getElementById("class").value;
+            cell1.innerHTML = count++;
+            cell2.innerHTML = name;
+            cell3.innerHTML = className;
 
-  students.push({ name, father, phone, cls });
-
-  renderTable();
-
-  document.getElementById("name").value = "";
-  document.getElementById("father").value = "";
-  document.getElementById("phone").value = "";
-  document.getElementById("class").value = "";
-}
-
-function renderTable() {
-  let table = document.getElementById("list");
-  table.innerHTML = "";
-
-  students.forEach(s => {
-    table.innerHTML += 
-      <tr>
-        <td>${s.name}</td>
-        <td>${s.father}</td>
-        <td>${s.phone}</td>
-        <td>${s.cls}</td>
-      </tr>
-    ;
-  });
-}
-</script>
+            // ထည့်ပြီးရင် text box ကို အလွတ်ပြန်လုပ်ပေးခြင်း
+            nameInput.value = "";
+        }
+    </script>
 
 </body>
 </html>
