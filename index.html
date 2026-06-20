@@ -1,195 +1,46 @@
-<!DOCTYPE html>
-<html lang="my">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ကျောင်းသားကျောင်းသူများ အမည်စာရင်း</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 500px;
-            margin-bottom: 20px;
-        }
-        h2, h3 {
-            color: #333;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"], select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            border-collapse: collapse;
-            width: 90%;
-            max-width: 600px;
-            background: #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
-        th {
-            background-color: #008CBA;
-            color: white;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .btn-delete {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-delete:hover {
-            background-color: #da190b;
-        }
-    </style>
-</head>
-<body>
+if(!data.name){alert('နာမည် ဖြည့်ပေးပါ');return;}
+  if(id){await sb.from('teachers').update(data).eq('id',id);}
+  else{await sb.from('teachers').insert(data);}
+  closeModal('teacher');toast('✅ သိမ်းဆည်းပြီးပါပြီ');await loadAll();
+}
 
-    <div class="container">
-        <h2>ကျောင်းသားအမည်စာရင်း ထည့်သွင်းရန်</h2>
-        
-        <div class="form-group">
-            <label for="studentName">ကျောင်းသား/သူ အမည်:</label>
-            <input type="text" id="studentName" placeholder="အမည်ရိုက်ထည့်ပါ">
-        </div>
+async function saveClass(){
+  const id=document.getElementById('c-id').value;
+  const data={name:document.getElementById('c-name').value,room:document.getElementById('c-room').value,capacity:parseInt(document.getElementById('c-capacity').value)||40};
+  if(!data.name){alert('တန်းအမည် ဖြည့်ပေးပါ');return;}
+  if(id){await sb.from('classes').update(data).eq('id',id);}
+  else{await sb.from('classes').insert(data);}
+  closeModal('class');toast('✅ သိမ်းဆည်းပြီးပါပြီ');await loadAll();
+}
 
-        <div class="form-group">
-            <label for="studentClass">အတန်း:</label>
-            <select id="studentClass">
-                <option value="သူငယ်တန်းလေး (က)">သူငယ်တန်းလေး (က)</option>
-                <option value="သူငယ်တန်းလေး (ခ)">သူငယ်တန်းလေး (ခ)</option>
-                <option value="သူငယ်တန်းကြီး (က)">သူငယ်တန်းကြီး (က)</option>
-                <option value="သူငယ်တန်းကြီး (ခ)">သူငယ်တန်းကြီး (ခ)</option>
-                <option value="ပထမတန်း">ပထမတန်း</option>
-                <option value="ဒုတိယတန်း">ဒုတိယတန်း</option>
-                <option value="တတိယတန်း">တတိယတန်း</option>
-                <option value="စတုတ္ထတန်း">စတုတ္ထတန်း</option>
-            </select>
-        </div>
+async function saveSubject(){
+  const id=document.getElementById('sub-id').value;
+  const data={name:document.getElementById('sub-name').value,code:document.getElementById('sub-code').value,teacher_id:parseInt(document.getElementById('sub-teacher').value)||null};
+  if(!data.name){alert('ဘာသာရပ်အမည် ဖြည့်ပေးပါ');return;}
+  if(id){await sb.from('subjects').update(data).eq('id',id);}
+  else{await sb.from('subjects').insert(data);}
+  closeModal('subject');toast('✅ သိမ်းဆည်းပြီးပါပြီ');await loadAll();
+}
 
-        <button onclick="addStudent()">စာရင်းထည့်ရန်</button>
-    </div>
+async function saveTT(){
+  const classId=parseInt(document.getElementById('tt-class-select').value);
+  const data={class_id:classId,day:document.getElementById('tt-day').value,period:parseInt(document.getElementById('tt-period').value),subject_id:parseInt(document.getElementById('tt-subject').value),teacher_id:parseInt(document.getElementById('tt-teacher').value)};
+  await sb.from('timetable').insert(data);
+  closeModal('tt');toast('✅ ထည့်သွင်းပြီးပါပြီ');await loadAll();renderTimetable();
+}
 
-    <h3>ကျောင်းသားကျောင်းသူများ၏ အမည်စာရင်း ဇယား</h3>
-    
-    <table id="studentTable">
-        <thead>
-            <tr>
-                <th>စဉ်</th>
-                <th>အမည်</th>
-                <th>အတန်း</th>
-                <th>လုပ်ဆောင်ချက်</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+async function deleteRecord(table,id){
+  if(!confirm('ဖျက်မည်လား?'))return;
+  await sb.from(table).delete().eq('id',id);
+  toast('🗑 ဖျက်ပြီးပါပြီ');await loadAll();
+}
 
-    <script>
-        // Web Page ဖွင့်လိုက်တာနဲ့ အရင်သိမ်းထားတဲ့ ဒေတာတွေကို ဆွဲထုတ်ပြသခြင်း
-        document.addEventListener("DOMContentLoaded", loadStudents);
-        function addStudent() {
-            const nameInput = document.getElementById("studentName");
-            const classSelect = document.getElementById("studentClass");
-            
-            const name = nameInput.value.trim();
-            const className = classSelect.value;
+async function deleteTT(id){
+  await sb.from('timetable').delete().eq('id',id);
+  toast('🗑 ဖျက်ပြီးပါပြီ');await loadAll();renderTimetable();
+}
 
-            if (name === "") {
-                alert("ကျောင်းသားအမည်ကို ရိုက်ထည့်ပေးပါဦး။");
-                return;
-            }
-
-            // ဒေတာအသစ်ကို Object ပုံစံလုပ်ခြင်း
-            const student = { name: name, className: className };
-
-            // လက်ရှိ သိမ်းထားတဲ့ စာရင်းတွေကို ယူ၊ အသစ်တစ်ခုထပ်ပေါင်းပြီး ပြန်သိမ်းခြင်း
-            let students = JSON.parse(localStorage.getItem("students")) || [];
-            students.push(student);
-            localStorage.setItem("students", JSON.stringify(students));
-
-            // ဇယားကို Update လုပ်ပြီး တန်ဖိုးတွေကို ရှင်းထုတ်ခြင်း
-            loadStudents();
-            nameInput.value = "";
-        }
-
-        function loadStudents() {
-            const tableBody = document.getElementById("studentTable").getElementsByTagName('tbody')[0];
-            tableBody.innerHTML = ""; // ဇယားအဟောင်းကို ရှင်းထုတ်
-
-            let students = JSON.parse(localStorage.getItem("students")) || [];
-
-            students.forEach((student, index) => {
-                const newRow = tableBody.insertRow();
-
-                const cell1 = newRow.insertCell(0);
-                const cell2 = newRow.insertCell(1);
-                const cell3 = newRow.insertCell(2);
-                const cell4 = newRow.insertCell(3);
-
-                cell1.innerHTML = index + 1;
-                cell2.innerHTML = student.name;
-                cell3.innerHTML = student.className;
-                cell4.innerHTML = <button class="btn-delete" onclick="deleteStudent(${index})">ဖျက်ရန်</button>;
-            });
-        }
-
-        function deleteStudent(index) {
-            if (confirm("ဤကျောင်းသားစာရင်းကို ဖျက်ရန် သေချာပါသလား?")) {
-                let students = JSON.parse(localStorage.getItem("students")) || [];
-                students.splice(index, 1); // ရွေးချယ်ထားတဲ့အကြောင်းကို ဖျက်ခြင်း
-                localStorage.setItem("students", JSON.stringify(students));
-                loadStudents(); // ဇယားကို ပြန်ပြခြင်း
-            }
-        }
-    </script>
-
+loadAll();
+</script>
 </body>
 </html>
