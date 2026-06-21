@@ -1,384 +1,453 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>School Management System</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 body{display:flex;min-height:100vh;background:#f8fafc}
-#sidebar{width:210px;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
-#sidebar .brand{padding:20px 16px;border-bottom:1px solid #e2e8f0}
-#sidebar .brand h2{font-size:15px;font-weight:800;color:#1e293b}
-#sidebar .brand p{font-size:11px;color:#94a3b8;margin-top:2px}
-#sidebar nav{flex:1;padding:12px 8px;overflow-y:auto}
-#sidebar nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#64748b;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:2px;text-decoration:none;transition:all 0.15s}
-#sidebar nav a:hover{background:#f1f5f9;color:#1e293b}
-#sidebar nav a.active{background:#eff6ff;color:#2563eb;font-weight:700}
-#content{margin-left:210px;flex:1;padding:28px 32px;min-height:100vh}
-#topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
-#topbar h1{font-size:22px;font-weight:800;color:#1e293b}
-#topbar p{font-size:13px;color:#94a3b8;margin-top:2px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
-.stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px}
-.stat .n{font-size:32px;font-weight:800;color:#1e293b;line-height:1}
-.stat .l{font-size:13px;color:#64748b;margin-top:6px}
-.page{display:none}.page.active{display:block}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:20px}
-.card-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
-.card-header h3{font-size:15px;font-weight:700;color:#1e293b}
+#sb{width:200px;background:#fff;border-right:1px solid #e2e8f0;position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:100}
+#sb .brand{padding:18px 16px;border-bottom:1px solid #e2e8f0}
+#sb .brand h2{font-size:14px;font-weight:800;color:#1e293b}
+#sb .brand p{font-size:11px;color:#94a3b8;margin-top:2px}
+#sb nav{padding:10px 8px}
+#sb nav button{width:100%;padding:9px 12px;margin-bottom:2px;display:flex;align-items:center;gap:8px;background:transparent;border:none;border-radius:8px;color:#64748b;font-size:13px;cursor:pointer;text-align:left}
+#sb nav button:hover{background:#f1f5f9;color:#1e293b}
+#sb nav button.on{background:#eff6ff;color:#2563eb;font-weight:700}
+#ct{margin-left:200px;padding:28px 32px;flex:1}
+.pg{display:none}.pg.on{display:block}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.ph h1{font-size:21px;font-weight:800;color:#1e293b}
+.ph p{font-size:12px;color:#94a3b8;margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.sc{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px}
+.sc .n{font-size:30px;font-weight:800;color:#1e293b}
+.sc .l{font-size:12px;color:#64748b;margin-top:5px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:18px}
 table{width:100%;border-collapse:collapse}
-th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc;border-bottom:1px solid #e2e8f0}
-td{padding:12px 16px;font-size:13px;color:#374151;border-bottom:1px solid #f1f5f9}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+td{padding:11px 14px;font-size:13px;color:#374151;border-bottom:1px solid #f1f5f9}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafafa}
-.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
-.btn:hover{opacity:.85}
-.btn-blue{background:#2563eb;color:#fff}
-.btn-red{background:#ef4444;color:#fff;padding:5px 10px;font-size:12px}
-.btn-gray{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
-.btn-green{background:#16a34a;color:#fff}
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
-.badge-blue{background:#eff6ff;color:#2563eb}
-.badge-green{background:#f0fdf4;color:#16a34a}
-.badge-red{background:#fef2f2;color:#dc2626}
-.badge-yellow{background:#fefce8;color:#ca8a04}
-.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
-.overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:100%;max-width:460px;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.modal-head{padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
-.modal-head h3{font-size:15px;font-weight:700;color:#1e293b}
-.modal-body{padding:22px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
-  .field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit;transition:border .15s}
-.field input:focus,.field select:focus{border-color:#2563eb}
-.modal-foot{padding:16px 22px;border-top:1px solid #e2e8f0;display:flex;gap:10px;justify-content:flex-end}
-.search{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.search input,.search select{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
-.search input{flex:1;min-width:180px}
-.empty{padding:48px;text-align:center;color:#94a3b8;font-size:14px}
-#toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;background:#1e293b;color:#fff;border-radius:10px;font-size:13px;font-weight:600;z-index:999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-.quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:28px}
-.qa-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px}
-.qa-card h4{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:6px}
-.qa-card p{font-size:12px;color:#64748b;margin-bottom:12px}
-.qa-card .note{font-size:12px;font-weight:600;color:#2563eb}
-.needs{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px}
-.needs h4{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:14px}
-.needs-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9}
-.needs-item:last-child{border-bottom:none}
-.needs-item .label{font-size:13px;color:#374151}
-.needs-item .count{font-size:15px;font-weight:700;color:#1e293b}
-.grade-a{color:#16a34a;font-weight:700}
-.grade-b{color:#2563eb;font-weight:700}
-.grade-c{color:#ca8a04;font-weight:700}
-.grade-f{color:#dc2626;font-weight:700}
+.btn{padding:8px 15px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.bb{background:#2563eb;color:#fff}
+.bg{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.br{background:#ef4444;color:#fff;padding:5px 10px;font-size:12px}
+.bk{background:#16a34a;color:#fff}
+.ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.ov.on{display:flex}
+.md{background:#fff;border-radius:14px;width:100%;max-width:450px;max-height:90vh;overflow:auto}
+.mh{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.mh h3{font-size:15px;font-weight:700;color:#1e293b}
+.mb{padding:20px}
+.mf{padding:14px 20px;border-top:1px solid #e2e8f0;display:flex;gap:8px;justify-content:flex-end}
+.fi{margin-bottom:13px}
+.fi label{display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.fi input,.fi select{width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.fi input:focus,.fi select:focus{border-color:#2563eb}
+.sb2{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sb2 input,.sb2 select{padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.sb2 input{flex:1;min-width:160px}
+.em{padding:40px;text-align:center;color:#94a3b8;font-size:13px}
+#toast{position:fixed;bottom:22px;right:22px;padding:11px 18px;background:#1e293b;color:#fff;border-radius:10px;font-size:13px;font-weight:600;z-index:999;display:none}
+  .qa{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.qc{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px}
+.qc h4{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:5px}
+.qc p{font-size:12px;color:#64748b;margin-bottom:10px}
+.qc .note{font-size:12px;font-weight:600;color:#2563eb}
+.na{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px}
+.ni{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+.ni:last-child{border:none}
+.ga{color:#16a34a;font-weight:700}.gb{color:#2563eb;font-weight:700}.gc{color:#ca8a04;font-weight:700}.gf{color:#dc2626;font-weight:700}
+.bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.bl{background:#eff6ff;color:#2563eb}.bn{background:#fef9c3;color:#854d0e}.bk2{background:#f0fdf4;color:#16a34a}.br2{background:#fef2f2;color:#dc2626}
 </style>
 </head>
 <body>
-
-<div id="sidebar">
-  <div class="brand">
-    <h2>🏫 School Management</h2>
-    <p>Admin workspace</p>
-  </div>
+<div id="sb">
+  <div class="brand"><h2>🏫 School Management</h2><p>Admin workspace</p></div>
   <nav>
-    <a class="active" onclick="go('overview',this)">📊 Overview</a>
-    <a onclick="go('students',this)">👨‍🎓 Students</a>
-    <a onclick="go('teachers',this)">👨‍🏫 Teachers</a>
-    <a onclick="go('classrooms',this)">🏫 Classrooms</a>
-    <a onclick="go('courses',this)">📚 Class Courses</a>
-    <a onclick="go('exams',this)">📝 Exams</a>
-    <a onclick="go('results',this)">📊 Results</a>
+    <button class="on" onclick="go('overview',this)">📊 Overview</button>
+    <button onclick="go('students',this)">👨‍🎓 Students</button>
+    <button onclick="go('teachers',this)">👨‍🏫 Teachers</button>
+    <button onclick="go('classrooms',this)">🏫 Classrooms</button>
+    <button onclick="go('courses',this)">📚 Class Courses</button>
+    <button onclick="go('exams',this)">📝 Exams</button>
+    <button onclick="go('results',this)">📊 Results</button>
   </nav>
 </div>
+<div id="ct">
 
-<div id="content">
-
-<!-- OVERVIEW -->
-<div id="page-overview" class="page active">
-  <div id="topbar">
-    <div><h1>School Management System</h1><p>Admin workspace</p></div>
-  </div>
-  <h2 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px">Today's admin overview</h2>
-  <p style="font-size:13px;color:#64748b;margin-bottom:20px">Start with the key actions below, then clear the small list of records that still need attention.</p>
+<div id="pg-overview" class="pg on">
+  <div class="ph"><div><h1>School Management System</h1><p>Admin workspace</p></div></div>
+  <p style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:5px">Today's admin overview</p>
+  <p style="font-size:12px;color:#64748b;margin-bottom:18px">Start with the key actions below, then clear the small list of records that still need attention.</p>
   <div class="stats">
-    <div class="stat"><div class="n" id="ov-students">0</div><div class="l">Total Students</div></div>
-    <div class="stat"><div class="n" id="ov-teachers">0</div><div class="l">Total Teachers</div></div>
-    <div class="stat"><div class="n" id="ov-classes">0</div><div class="l">Total Classes</div></div>
-    <div class="stat"><div class="n" id="ov-courses">0</div><div class="l">Total Class Courses</div></div>
+    <div class="sc"><div class="n" id="o-s">0</div><div class="l">Total Students</div></div>
+    <div class="sc"><div class="n" id="o-t">0</div><div class="l">Total Teachers</div></div>
+    <div class="sc"><div class="n" id="o-c">0</div><div class="l">Total Classes</div></div>
+    <div class="sc"><div class="n" id="o-sub">0</div><div class="l">Total Class Courses</div></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
     <div>
-      <h3 style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:14px">Quick actions</h3>
-      <div class="quick-actions" style="grid-template-columns:1fr">
-        <div class="qa-card"><h4>Review accounts</h4><p>Create or deactivate administrator access.</p><div class="note">Admin access list is up to date.</div></div>
-        <div class="qa-card"><h4>Add or update students</h4><p>Keep enrollment and classroom assignments current.</p><div class="note" id="qa-students">0 students in the system.</div></div>
-        <div class="qa-card"><h4>Check teacher records</h4><p>Keep teacher records ready for the new term.</p><div class="note" id="qa-teachers">0 teachers in the system.</div></div>
-        <div class="qa-card"><h4>Plan class courses</h4><p>Review classroom coverage and class assignments.</p><div class="note" id="qa-courses">0 courses planned.</div></div>
+      <p style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:12px">Quick actions</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="qc"><h4>Add or update students</h4><p>Keep enrollment and classroom assignments current.</p><div class="note" id="qa-s">0 students in the system.</div></div>
+        <div class="qc"><h4>Check teacher records</h4><p>Keep teacher records ready for the new term.</p><div class="note" id="qa-t">0 teachers in the system.</div></div>
+        <div class="qc"><h4>Plan class courses</h4><p>Review classroom coverage and class assignments.</p><div class="note" id="qa-sub">0 courses planned.</div></div>
+        <div class="qc"><h4>Manage exams & results</h4><p>Add exam schedules and record student results.</p><div class="note" id="qa-e">0 exams this term.</div></div>
       </div>
     </div>
     <div>
-      <h3 style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:14px">Needs attention</h3>
-      <div class="needs">
-        <div class="needs-item"><div class="label">Students without classroom</div><div class="count" id="na-noclass">0</div></div>
-        <div class="needs-item"><div class="label">Exams without results</div><div class="count" id="na-noresult">0</div></div>
-        <div class="needs-item"><div class="label">Total exams this term</div><div class="count" id="na-exams">0</div></div>
+      <p style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:12px">Needs attention</p>
+      <div class="na">
+        <div class="ni"><span>Students without classroom</span><b id="na-nc">0</b></div>
+        <div class="ni"><span>Exams without results</span><b id="na-nr">0</b></div>
+        <div class="ni"><span>Total exams this term</span><b id="na-e">0</b></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- STUDENTS -->
-<div id="page-students" class="page">
-  <div id="topbar"><div><h1>Students</h1><p id="s-count">0 students</p></div><button class="btn btn-blue" onclick="openM('student')">+ Add Student</button></div>
-  <div class="search"><input id="s-search" placeholder="Search students..." oninput="renderStudents()"><select id="s-filter" onchange="renderStudents()"><option value="">All Classes</option></select></div>
-  <div class="card"><table><thead><tr><th>Name</th><th>Gender</th><th>Class</th><th>DOB</th><th>Enrolled</th><th>Phone</th><th>Actions</th></tr></thead><tbody id="s-list"></tbody></table></div>
+<div id="pg-students" class="pg">
+  <div class="ph"><div><h1>Students</h1><p id="s-cnt">0 students</p></div><button class="btn bb" onclick="openM('student')">+ Add Student</button></div>
+  <div class="sb2"><input id="s-q" placeholder="Search students..." oninput="rS()"><select id="s-cf" onchange="rS()"><option value="">All Classes</option></select></div>
+  <div class="card"><table><thead><tr><th>Name</th><th>Gender</th><th>Class</th><th>DOB</th><th>Enrolled</th><th>Phone</th><th>Actions</th></tr></thead><tbody id="s-tb"></tbody></table></div>
 </div>
 
-<!-- TEACHERS -->
-<div id="page-teachers" class="page">
-  <div id="topbar"><div><h1>Teachers</h1><p id="t-count">0 teachers</p></div><button class="btn btn-blue" onclick="openM('teacher')">+ Add Teacher</button></div>
-  <div class="card"><table><thead><tr><th>Name</th><th>Subject</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead><tbody id="t-list"></tbody></table></div>
+<div id="pg-teachers" class="pg">
+  <div class="ph"><div><h1>Teachers</h1><p id="t-cnt">0 teachers</p></div><button class="btn bb" onclick="openM('teacher')">+ Add Teacher</button></div>
+  <div class="card"><table><thead><tr><th>Name</th><th>Subject</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead><tbody id="t-tb"></tbody></table></div>
 </div>
 
-<!-- CLASSROOMS -->
-<div id="page-classrooms" class="page">
-  <div id="topbar"><div><h1>Classrooms</h1><p id="c-count">0 classes</p></div><button class="btn btn-blue" onclick="openM('class')">+ Add Class</button></div>
-  <div class="card"><table><thead><tr><th>Class Name</th><th>Room</th><th>Capacity</th><th>Students</th><th>Actions</th></tr></thead><tbody id="c-list"></tbody></table></div>
+<div id="pg-classrooms" class="pg">
+  <div class="ph"><div><h1>Classrooms</h1><p id="c-cnt">0 classes</p></div><button class="btn bb" onclick="openM('class')">+ Add Class</button></div>
+  <div class="card"><table><thead><tr><th>Class Name</th><th>Room</th><th>Capacity</th><th>Students</th><th>Actions</th></tr></thead><tbody id="c-tb"></tbody></table></div>
 </div>
 
-<!-- COURSES -->
-<div id="page-courses" class="page">
-  <div id="topbar"><div><h1>Class Courses</h1><p id="sub-count">0 courses</p></div><button class="btn btn-blue" onclick="openM('subject')">+ Add Course</button></div>
-  <div class="card"><table><thead><tr><th>Course</th><th>Code</th><th>Class</th><th>Teacher</th><th>Actions</th></tr></thead><tbody id="sub-list"></tbody></table></div>
+<div id="pg-courses" class="pg">
+  <div class="ph"><div><h1>Class Courses</h1><p id="sub-cnt">0 courses</p></div><button class="btn bb" onclick="openM('subject')">+ Add Course</button></div>
+  <div class="card"><table><thead><tr><th>Course</th><th>Code</th><th>Class</th><th>Teacher</th><th>Actions</th></tr></thead><tbody id="sub-tb"></tbody></table></div>
 </div>
 
-<!-- EXAMS -->
-<div id="page-exams" class="page">
-  <div id="topbar"><div><h1>Exams</h1><p id="e-count">0 exams</p></div><button class="btn btn-blue" onclick="openM('exam')">+ Add Exam</button></div>
-  <div class="card"><table><thead><tr><th>Exam Name</th><th>Class</th><th>Subject</th><th>Date</th><th>Total Marks</th><th>Actions</th></tr></thead><tbody id="e-list"></tbody></table></div>
+<div id="pg-exams" class="pg">
+  <div class="ph"><div><h1>Exams</h1><p id="e-cnt">0 exams</p></div><button class="btn bb" onclick="openM('exam')">+ Add Exam</button></div>
+  <div class="card"><table><thead><tr><th>Exam Name</th><th>Class</th><th>Subject</th><th>Date</th><th>Total Marks</th><th>Actions</th></tr></thead><tbody id="e-tb"></tbody></table></div>
 </div>
 
-<!-- RESULTS -->
-<div id="page-results" class="page">
-  <div id="topbar"><div><h1>Results</h1><p id="r-count">0 results</p></div><button class="btn btn-blue" onclick="openM('result')">+ Add Result</button></div>
-  <div class="search">
-    <select id="r-exam-filter" onchange="renderResults()" style="min-width:200px"><option value="">All Exams</option></select>
-    <select id="r-class-filter" onchange="renderResults()" style="min-width:160px"><option value="">All Classes</option></select>
+<div id="pg-results" class="pg">
+  <div class="ph"><div><h1>Results</h1><p id="r-cnt">0 results</p></div><button class="btn bb" onclick="openM('result')">+ Add Result</button></div>
+  <div class="sb2">
+    <select id="r-ef" onchange="rR()" style="min-width:180px"><option value="">All Exams</option></select>
   </div>
-  <div class="card"><table><thead><tr><th>Student</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Actions</th></tr></thead><tbody id="r-list"></tbody></table></div>
+  <div class="card"><table><thead><tr><th>Student</th><th>Exam</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Actions</th></tr></thead><tbody id="r-tb"></tbody></table></div>
 </div>
 
 </div>
+
 <!-- MODALS -->
-<div id="m-student" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="ms-title">Add Student</h3><button onclick="closeM('student')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="ms-id">
-    <div class="field"><label>Full Name</label><input id="ms-name" placeholder="Student name"></div>
-    <div class="field"><label>Gender</label><select id="ms-gender"><option value="M">Male</option><option value="F">Female</option></select></div>
-    <div class="field"><label>Class</label><select id="ms-class"></select></div>
-    <div class="field"><label>Date of Birth</label><input type="date" id="ms-dob"></div>
-    <div class="field"><label>Enrollment Date</label><input type="date" id="ms-enroll"></div>
-    <div class="field"><label>Phone</label><input id="ms-phone" placeholder="09-xxxxxxx"></div>
+<div id="m-student" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="ms-ti">Add Student</h3><button class="btn bg" onclick="closeM('student')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="ms-id">
+      <div class="fi"><label>Full Name</label><input id="ms-n" placeholder="Student name"></div>
+      <div class="fi"><label>Gender</label><select id="ms-g"><option value="M">Male</option><option value="F">Female</option></select></div>
+      <div class="fi"><label>Class</label><select id="ms-c"></select></div>
+      <div class="fi"><label>Date of Birth</label><input type="date" id="ms-d"></div>
+      <div class="fi"><label>Enrollment Date</label><input type="date" id="ms-e"></div>
+      <div class="fi"><label>Phone</label><input id="ms-p" placeholder="09-xxxxxxx"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('student')">Cancel</button><button class="btn bk" onclick="saveStudent()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('student')">Cancel</button><button class="btn btn-green" onclick="saveStudent()">Save</button></div>
-</div></div>
+</div>
 
-<div id="m-teacher" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="mt-title">Add Teacher</h3><button onclick="closeM('teacher')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="mt-id">
-    <div class="field"><label>Full Name</label><input id="mt-name" placeholder="Teacher name"></div>
-    <div class="field"><label>Subject</label><input id="mt-subject" placeholder="Main subject"></div>
-    <div class="field"><label>Phone</label><input id="mt-phone" placeholder="09-xxxxxxx"></div>
-    <div class="field"><label>Email</label><input id="mt-email" placeholder="email@school.mm"></div>
+<div id="m-teacher" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="mt-ti">Add Teacher</h3><button class="btn bg" onclick="closeM('teacher')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="mt-id">
+      <div class="fi"><label>Full Name</label><input id="mt-n" placeholder="Teacher name"></div>
+      <div class="fi"><label>Subject</label><input id="mt-s" placeholder="Main subject"></div>
+      <div class="fi"><label>Phone</label><input id="mt-p" placeholder="09-xxxxxxx"></div>
+      <div class="fi"><label>Email</label><input id="mt-e" placeholder="email@school.mm"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('teacher')">Cancel</button><button class="btn bk" onclick="saveTeacher()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('teacher')">Cancel</button><button class="btn btn-green" onclick="saveTeacher()">Save</button></div>
-</div></div>
+</div>
 
-<div id="m-class" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="mc-title">Add Class</h3><button onclick="closeM('class')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="mc-id">
-    <div class="field"><label>Class Name</label><input id="mc-name" placeholder="e.g. Grade 1"></div>
-    <div class="field"><label>Room</label><input id="mc-room" placeholder="e.g. Room A"></div>
-    <div class="field"><label>Capacity</label><input type="number" id="mc-cap" placeholder="40"></div>
+<div id="m-class" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="mc-ti">Add Class</h3><button class="btn bg" onclick="closeM('class')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="mc-id">
+      <div class="fi"><label>Class Name</label><input id="mc-n" placeholder="e.g. Grade 1"></div>
+      <div class="fi"><label>Room</label><input id="mc-r" placeholder="e.g. Room A"></div>
+      <div class="fi"><label>Capacity</label><input type="number" id="mc-c" placeholder="40"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('class')">Cancel</button><button class="btn bk" onclick="saveClass()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('class')">Cancel</button><button class="btn btn-green" onclick="saveClass()">Save</button></div>
-</div></div>
+</div>
 
-<div id="m-subject" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="msub-title">Add Course</h3><button onclick="closeM('subject')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="msub-id">
-    <div class="field"><label>Course Name</label><input id="msub-name" placeholder="e.g. Mathematics"></div>
-    <div class="field"><label>Code</label><input id="msub-code" placeholder="e.g. MATH"></div>
-    <div class="field"><label>Class</label><select id="msub-class"></select></div>
-    <div class="field"><label>Teacher</label><select id="msub-teacher"><option value="">Select teacher</option></select></div>
+<div id="m-subject" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="msub-ti">Add Course</h3><button class="btn bg" onclick="closeM('subject')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="msub-id">
+      <div class="fi"><label>Course Name</label><input id="msub-n" placeholder="e.g. Mathematics"></div>
+      <div class="fi"><label>Code</label><input id="msub-c" placeholder="e.g. MATH"></div>
+      <div class="fi"><label>Class</label><select id="msub-cl"></select></div>
+      <div class="fi"><label>Teacher</label><select id="msub-t"><option value="">Select teacher</option></select></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('subject')">Cancel</button><button class="btn bk" onclick="saveSubject()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('subject')">Cancel</button><button class="btn btn-green" onclick="saveSubject()">Save</button></div>
-</div></div>
+</div>
 
-<div id="m-exam" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="me-title">Add Exam</h3><button onclick="closeM('exam')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="me-id">
-    <div class="field"><label>Exam Name</label><input id="me-name" placeholder="e.g. Mid Term Exam"></div>
-    <div class="field"><label>Class</label><select id="me-class"></select></div>
-    <div class="field"><label>Subject</label><select id="me-subject"></select></div>
-    <div class="field"><label>Exam Date</label><input type="date" id="me-date"></div>
-    <div class="field"><label>Total Marks</label><input type="number" id="me-marks" placeholder="100"></div>
+<div id="m-exam" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="me-ti">Add Exam</h3><button class="btn bg" onclick="closeM('exam')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="me-id">
+      <div class="fi"><label>Exam Name</label><input id="me-n" placeholder="e.g. Mid Term Exam"></div>
+      <div class="fi"><label>Class</label><select id="me-cl"></select></div>
+      <div class="fi"><label>Subject</label><select id="me-s"></select></div>
+      <div class="fi"><label>Exam Date</label><input type="date" id="me-d"></div>
+      <div class="fi"><label>Total Marks</label><input type="number" id="me-m" placeholder="100" value="100"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('exam')">Cancel</button><button class="btn bk" onclick="saveExam()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('exam')">Cancel</button><button class="btn btn-green" onclick="saveExam()">Save</button></div>
-</div></div>
+</div>
 
-<div id="m-result" class="overlay"><div class="modal">
-  <div class="modal-head"><h3 id="mr-title">Add Result</h3><button onclick="closeM('result')" class="btn btn-gray">✕</button></div>
-  <div class="modal-body">
-    <input type="hidden" id="mr-id">
-    <div class="field"><label>Student</label><select id="mr-student"></select></div>
-    <div class="field"><label>Exam</label><select id="mr-exam" onchange="loadExamMarks()"></select></div>
-    <div class="field"><label>Marks Obtained</label><input type="number" id="mr-marks" placeholder="0" oninput="calcGrade()"></div>
-    <div class="field"><label>Grade</label><input id="mr-grade" readonly style="background:#f8fafc"></div>
+<div id="m-result" class="ov">
+  <div class="md">
+    <div class="mh"><h3 id="mr-ti">Add Result</h3><button class="btn bg" onclick="closeM('result')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="mr-id">
+      <div class="fi"><label>Student</label><select id="mr-st"></select></div>
+      <div class="fi"><label>Exam</label><select id="mr-ex" onchange="calcG()"></select></div>
+      <div class="fi"><label>Marks Obtained</label><input type="number" id="mr-m" placeholder="0" oninput="calcG()"></div>
+      <div class="fi"><label>Grade</label><input id="mr-g" readonly style="background:#f8fafc;font-weight:700"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('result')">Cancel</button><button class="btn bk" onclick="saveResult()">Save</button></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-gray" onclick="closeM('result')">Cancel</button><button class="btn btn-green" onclick="saveResult()">Save</button></div>
-</div></div>
+</div>
 
 <div id="toast"></div>
 
 <script>
-const URL='https://edjxoknaxcwjmnhbdppg.supabase.co';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkanhva25heGN3am1uaGJkcHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0NDE0MDgsImV4cCI6MjA2NTAxNzQwOH0.ZVbQjXnmKPqRsFwEtYoMdN2L8kH5rP3cA7uG1xW9eI4';
-const sb=supabase.createClient(URL,KEY);
-let students=[],teachers=[],classes=[],subjects=[],exams=[],results=[];
+const SB_URL='https://edjxoknaxcwjmnhbdppg.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkanhva25heGN3am1uaGJkcHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0NDE0MDgsImV4cCI6MjA2NTAxNzQwOH0.ZVbQjXnmKPqRsFwEtYoMdN2L8kH5rP3cA7uG1xW9eI4';
+const db=supabase.createClient(SB_URL,SB_KEY);
+let S=[],T=[],C=[],SUB=[],E=[],R=[];
 
-function toast(m,ok=true){const t=document.getElementById('toast');t.textContent=m;t.style.background=ok?'#1e293b':'#dc2626';t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-function go(page,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');el.classList.add('active');if(page==='overview')renderOverview();}
-function openM(t,d=null){
-  if(t==='student'){document.getElementById('ms-title').textContent=d?'Edit Student':'Add Student';document.getElementById('ms-id').value=d?d.id:'';document.getElementById('ms-name').value=d?d.name:'';document.getElementById('ms-gender').value=d?d.gender:'M';document.getElementById('ms-dob').value=d?d.dob:'';document.getElementById('ms-enroll').value=d?d.enroll_date:new Date().toISOString().split('T')[0];document.getElementById('ms-phone').value=d?d.phone:'';document.getElementById('ms-class').innerHTML=classes.map(c=><option value="${c.id}"${d&&d.class_id==c.id?' selected':''}>${c.name}</option>).join('');}
-  if(t==='teacher'){document.getElementById('mt-title').textContent=d?'Edit Teacher':'Add Teacher';document.getElementById('mt-id').value=d?d.id:'';document.getElementById('mt-name').value=d?d.name:'';document.getElementById('mt-subject').value=d?d.subject:'';document.getElementById('mt-phone').value=d?d.phone:'';document.getElementById('mt-email').value=d?d.email:'';}
-  if(t==='class'){document.getElementById('mc-title').textContent=d?'Edit Class':'Add Class';document.getElementById('mc-id').value=d?d.id:'';document.getElementById('mc-name').value=d?d.name:'';document.getElementById('mc-room').value=d?d.room:'';document.getElementById('mc-cap').value=d?d.capacity:40;}
-  if(t==='subject'){document.getElementById('msub-title').textContent=d?'Edit Course':'Add Course';document.getElementById('msub-id').value=d?d.id:'';document.getElementById('msub-name').value=d?d.name:'';document.getElementById('msub-code').value=d?d.code:'';document.getElementById('msub-class').innerHTML=classes.map(c=>`<option value="${c.id}"${d&&d.class_id==c.id?'
-                                                                                                                                                                                                                                       selected':''}>${c.name}</option>).join('');document.getElementById('msub-teacher').innerHTML='<option value="">Select teacher</option>'+teachers.map(t=><option value="${t.id}"${d&&d.teacher_id==t.id?' selected':''}>${t.name}</option>).join('');}
-  if(t==='exam'){document.getElementById('me-title').textContent=d?'Edit Exam':'Add Exam';document.getElementById('me-id').value=d?d.id:'';document.getElementById('me-name').value=d?d.name:'';document.getElementById('me-date').value=d?d.exam_date:'';document.getElementById('me-marks').value=d?d.total_marks:100;document.getElementById('me-class').innerHTML=classes.map(c=><option value="${c.id}"${d&&d.class_id==c.id?' selected':''}>${c.name}</option>).join('');document.getElementById('me-subject').innerHTML=subjects.map(s=><option value="${s.id}"${d&&d.subject_id==s.id?' selected':''}>${s.name}</option>).join('');}
-  if(t==='result'){document.getElementById('mr-title').textContent=d?'Edit Result':'Add Result';document.getElementById('mr-id').value=d?d.id:'';document.getElementById('mr-marks').value=d?d.marks:'';document.getElementById('mr-grade').value=d?d.grade:'';document.getElementById('mr-student').innerHTML=students.map(s=><option value="${s.id}"${d&&d.student_id==s.id?' selected':''}>${s.name}</option>).join('');document.getElementById('mr-exam').innerHTML=exams.map(e=><option value="${e.id}"${d&&d.exam_id==e.id?' selected':''}>${e.name}</option>).join('');}
-  document.getElementById('m-'+t).classList.add('open');
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
+  function go(p,el){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('#sb nav button').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  el.classList.add('on');
 }
-function closeM(t){document.getElementById('m-'+t).classList.remove('open')}
 
-function calcGrade(){
-  const m=parseInt(document.getElementById('mr-marks').value)||0;
-  const exam=exams.find(e=>e.id==document.getElementById('mr-exam').value);
-  const total=exam?exam.total_marks:100;
-  const pct=total>0?m/total*100:0;
-  let g=pct>=80?'A':pct>=70?'B':pct>=60?'C':pct>=50?'D':'F';
-  document.getElementById('mr-grade').value=g;
+function openM(type,d=null){
+  if(type==='student'){
+    document.getElementById('ms-ti').textContent=d?'Edit Student':'Add Student';
+    document.getElementById('ms-id').value=d?d.id:'';
+    document.getElementById('ms-n').value=d?d.name:'';
+    document.getElementById('ms-g').value=d?d.gender:'M';
+    document.getElementById('ms-d').value=d?d.dob:'';
+    document.getElementById('ms-e').value=d?d.enroll_date:new Date().toISOString().split('T')[0];
+    document.getElementById('ms-p').value=d?d.phone:'';
+    document.getElementById('ms-c').innerHTML=C.map(c=><option value="${c.id}"${d&&d.class_id==c.id?' selected':''}>${c.name}</option>).join('');
+  }
+  if(type==='teacher'){
+    document.getElementById('mt-ti').textContent=d?'Edit Teacher':'Add Teacher';
+    document.getElementById('mt-id').value=d?d.id:'';
+    document.getElementById('mt-n').value=d?d.name:'';
+    document.getElementById('mt-s').value=d?d.subject:'';
+    document.getElementById('mt-p').value=d?d.phone:'';
+    document.getElementById('mt-e').value=d?d.email:'';
+  }
+  if(type==='class'){
+    document.getElementById('mc-ti').textContent=d?'Edit Class':'Add Class';
+    document.getElementById('mc-id').value=d?d.id:'';
+    document.getElementById('mc-n').value=d?d.name:'';
+    document.getElementById('mc-r').value=d?d.room:'';
+    document.getElementById('mc-c').value=d?d.capacity:40;
+  }
+  if(type==='subject'){
+    document.getElementById('msub-ti').textContent=d?'Edit Course':'Add Course';
+    document.getElementById('msub-id').value=d?d.id:'';
+    document.getElementById('msub-n').value=d?d.name:'';
+    document.getElementById('msub-c').value=d?d.code:'';
+    document.getElementById('msub-cl').innerHTML=C.map(c=><option value="${c.id}"${d&&d.class_id==c.id?' selected':''}>${c.name}</option>).join('');
+    document.getElementById('msub-t').innerHTML='<option value="">Select teacher</option>'+T.map(t=><option value="${t.id}"${d&&d.teacher_id==t.id?' selected':''}>${t.name}</option>).join('');
+  }
+  if(type==='exam'){
+    document.getElementById('me-ti').textContent=d?'Edit Exam':'Add Exam';
+    document.getElementById('me-id').value=d?d.id:'';
+    document.getElementById('me-n').value=d?d.name:'';
+    document.getElementById('me-d').value=d?d.exam_date:'';
+    document.getElementById('me-m').value=d?d.total_marks:100;
+    document.getElementById('me-cl').innerHTML=C.map(c=><option value="${c.id}"${d&&d.class_id==c.id?' selected':''}>${c.name}</option>).join('');
+    document.getElementById('me-s').innerHTML=SUB.map(s=><option value="${s.id}"${d&&d.subject_id==s.id?' selected':''}>${s.name}</option>).join('');
+  }
+  if(type==='result'){
+    document.getElementById('mr-ti').textContent=d?'Edit Result':'Add Result';
+    document.getElementById('mr-id').value=d?d.id:'';
+    document.getElementById('mr-m').value=d?d.marks:'';
+    document.getElementById('mr-g').value=d?d.grade:'';
+    document.getElementById('mr-st').innerHTML=S.map(s=><option value="${s.id}"${d&&d.student_id==s.id?' selected':''}>${s.name}</option>).join('');
+    document.getElementById('mr-ex').innerHTML=E.map(e=><option value="${e.id}"${d&&d.exam_id==e.id?' selected':''}>${e.name}</option>).join('');
+  }
+  document.getElementById('m-'+type).classList.add('on');
 }
-function loadExamMarks(){calcGrade();}
 
-async function loadAll(){
+function closeM(type){document.getElementById('m-'+type).classList.remove('on')}
+
+function calcG(){
+  const m=parseInt(document.getElementById('mr-m').value)||0;
+  const ex=E.find(e=>e.id==document.getElementById('mr-ex').value);
+  const tot=ex?ex.total_marks:100;
+  const p=tot>0?m/tot*100:0;
+  document.getElementById('mr-g').value=p>=80?'A':p>=70?'B':p>=60?'C':p>=50?'D':'F';
+}
+  async function load(){
   const[s,t,c,sub,e,r]=await Promise.all([
-    sb.from('students').select('*').order('name'),
-    sb.from('teachers').select('*').order('name'),
-    sb.from('classes').select('*').order('name'),
-    sb.from('subjects').select('*').order('name'),
-    sb.from('exams').select('*').order('exam_date',{ascending:false}),
-    sb.from('results').select('*')
+    db.from('students').select('*').order('name'),
+    db.from('teachers').select('*').order('name'),
+    db.from('classes').select('*').order('name'),
+    db.from('subjects').select('*').order('name'),
+    db.from('exams').select('*').order('exam_date',{ascending:false}),
+    db.from('results').select('*')
   ]);
-  students=s.data||[];teachers=t.data||[];classes=c.data||[];subjects=sub.data||[];exams=e.data||[];results=r.data||[];
+  S=s.data[];T=t.data[];C=c.data[];SUB=sub.data[];E=e.data[];R=r.data[];
   renderAll();
 }
 
-function renderAll(){renderOverview();renderStudents();renderTeachers();renderClasses();renderSubjects();renderExams();renderResults();
-  document.getElementById('s-filter').innerHTML='<option value="">All Classes</option>'+classes.map(c=><option value="${c.id}">${c.name}</option>).join('');
-  document.getElementById('r-exam-filter').innerHTML='<option value="">All Exams</option>'+exams.map(e=><option value="${e.id}">${e.name}</option>).join('');
-  document.getElementById('r-class-filter').innerHTML='<option value="">All Classes</option>'+classes.map(c=><option value="${c.id}">${c.name}</option>`).join('');
+function renderAll(){
+  // Overview
+  document.getElementById('o-s').textContent=S.length;
+  document.getElementById('o-t').textContent=T.length;
+  document.getElementById('o-c').textContent=C.length;
+  document.getElementById('o-sub').textContent=SUB.length;
+  document.getElementById('qa-s').textContent=S.length+' students in the system.';
+  document.getElementById('qa-t').textContent=T.length+' teachers in the system.';
+  document.getElementById('qa-sub').textContent=SUB.length+' courses planned.';
+  document.getElementById('qa-e').textContent=E.length+' exams this term.';
+  document.getElementById('na-nc').textContent=S.filter(x=>!x.class_id).length;
+  const eids=new Set(R.map(x=>x.exam_id));
+  document.getElementById('na-nr').textContent=E.filter(x=>!eids.has(x.id)).length;
+  document.getElementById('na-e').textContent=E.length;
+
+  // Students
+  document.getElementById('s-cnt').textContent=S.length+' students';
+  document.getElementById('s-cf').innerHTML='<option value="">All Classes</option>'+C.map(c=><option value="${c.id}">${c.name}</option>).join('');
+  rS();
+
+  // Teachers
+  document.getElementById('t-cnt').textContent=T.length+' teachers';
+  document.getElementById('t-tb').innerHTML=T.length?T.map(t=><tr><td><b>${t.name}</b></td><td><span class="bdg bl">${t.subject||'-'}</span></td><td>${t.phone||'-'}</td><td>${t.email||'-'}</td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("teacher",${JSON.stringify(t)})'>Edit</button><button class="btn br" onclick="del('teachers',${t.id})">Del</button></td></tr>).join(''):'<tr><td colspan="5" class="em">No teachers yet</td></tr>';
+
+  // Classes
+  document.getElementById('c-cnt').textContent=C.length+' classes';
+  document.getElementById('c-tb').innerHTML=C.length?C.map(c=>{
+    const cnt=S.filter(x=>x.class_id==c.id).length;
+    return<tr><td><b>${c.name}</b></td><td>${c.room||'-'}</td><td>${c.capacity||'-'}</td><td><span class="bdg bk2">${cnt} students</span></td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("class",${JSON.stringify(c)})'>Edit</button><button class="btn br" onclick="del('classes',${c.id})">Del</button></td></tr>;
+  }).join(''):'<tr><td colspan="5" class="em">No classes yet</td></tr>';
+
+  // Subjects
+  document.getElementById('sub-cnt').textContent=SUB.length+' courses';
+  document.getElementById('sub-tb').innerHTML=SUB.length?SUB.map(s=>{
+    const c=C.find(x=>x.id==s.class_id);
+    const t=T.find(x=>x.id==s.teacher_id);
+    return<tr><td><b>${s.name}</b></td><td><span class="bdg bn">${s.code||'-'}</span></td><td>${c?c.name:'-'}</td><td>${t?t.name:'-'}</td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("subject",${JSON.stringify(s)})'>Edit</button><button class="btn br" onclick="del('subjects',${s.id})">Del</button></td></tr>;
+  }).join(''):'<tr><td colspan="5" class="em">No courses yet</td></tr>';
+
+  // Exams
+  document.getElementById('e-cnt').textContent=E.length+' exams';
+  document.getElementById('e-tb').innerHTML=E.length?E.map(e=>{
+    const c=C.find(x=>x.id==e.class_id);
+    const s=SUB.find(x=>x.id==e.subject_id);
+    return<tr><td><b>${e.name}</b></td><td>${c?c.name:'-'}</td><td>${s?s.name:'-'}</td><td>${e.exam_date||'-'}</td><td><span class="bdg bl">${e.total_marks}</span></td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("exam",${JSON.stringify(e)})'>Edit</button><button class="btn br" onclick="del('exams',${e.id})">Del</button></td></tr>;
+  }).join(''):'<tr><td colspan="6" class="em">No exams yet</td></tr>';
+
+  // Results filter
+  document.getElementById('r-ef').innerHTML='<option value="">All Exams</option>'+E.map(e=><option value="${e.id}">${e.name}</option>).join('');
+  rR();
 }
 
-function renderOverview(){
-  document.getElementById('ov-students').textContent=students.length;
-  document.getElementById('ov-teachers').textContent=teachers.length;
-  document.getElementById('ov-classes').textContent=classes.length;
-  document.getElementById('ov-courses').textContent=subjects.length;
-  document.getElementById('qa-students').textContent=students.length+' students in the system.';
-  document.getElementById('qa-teachers').textContent=teachers.length+' teachers in the system.';
-  document.getElementById('qa-courses').textContent=subjects.length+' courses planned.';
-  const noClass=students.filter(s=>!s.class_id).length;
-  const examIds=new Set(results.map(r=>r.exam_id));
-  const noResult=exams.filter(e=>!examIds.has(e.id)).length;
-  document.getElementById('na-noclass').textContent=noClass;
-  document.getElementById('na-noresult').textContent=noResult;
-  document.getElementById('na-exams').textContent=exams.length;
-}
-   function renderStudents(){
-  const q=document.getElementById('s-search').value.toLowerCase();
-  const cf=document.getElementById('s-filter').value;
-  const list=students.filter(s=>s.name.toLowerCase().includes(q)&&(!cf||s.class_id==cf));
-  document.getElementById('s-count').textContent=students.length+' students';
-  document.getElementById('s-list').innerHTML=list.length?list.map(s=>{
-    const c=classes.find(x=>x.id==s.class_id);
-    return<tr><td><b>${s.name}</b></td><td><span class="badge ${s.gender=='F'?'badge-red':'badge-blue'}">${s.gender=='F'?'Female':'Male'}</span></td><td>${c?c.name:'-'}</td><td>${s.dob||'-'}</td><td>${s.enroll_date||'-'}</td><td>${s.phone||'-'}</td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("student",${JSON.stringify(s)})'>Edit</button><button class="btn btn-red" onclick="del('students',${s.id})">Del</button></td></tr>;
-  }).join(''):'<tr><td colspan="7" class="empty">No students found</td></tr>';
+function rS(){
+  const q=document.getElementById('s-q').value.toLowerCase();
+  const cf=document.getElementById('s-cf').value;
+  const list=S.filter(s=>s.name.toLowerCase().includes(q)&&(!cf||s.class_id==cf));
+  document.getElementById('s-tb').innerHTML=list.length?list.map(s=>{
+    const c=C.find(x=>x.id==s.class_id);
+    return<tr><td><b>${s.name}</b></td><td><span class="bdg ${s.gender=='F'?'br2':'bl'}">${s.gender=='F'?'Female':'Male'}</span></td><td>${c?c.name:'-'}</td><td>${s.dob||'-'}</td><td>${s.enroll_date||'-'}</td><td>${s.phone||'-'}</td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("student",${JSON.stringify(s)})'>Edit</button><button class="btn br" onclick="del('students',${s.id})">Del</button></td></tr>;
+  }).join(''):'<tr><td colspan="7" class="em">No students found</td></tr>';
 }
 
-function renderTeachers(){
-  document.getElementById('t-count').textContent=teachers.length+' teachers';
-  document.getElementById('t-list').innerHTML=teachers.length?teachers.map(t=><tr><td><b>${t.name}</b></td><td><span class="badge badge-blue">${t.subject||'-'}</span></td><td>${t.phone||'-'}</td><td>${t.email||'-'}</td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("teacher",${JSON.stringify(t)})'>Edit</button><button class="btn btn-red" onclick="del('teachers',${t.id})">Del</button></td></tr>).join(''):'<tr><td colspan="5" class="empty">No teachers</td></tr>';
+function rR(){
+  const ef=document.getElementById('r-ef').value;
+  const list=ef?R.filter(x=>x.exam_id==ef):R;
+  document.getElementById('r-cnt').textContent=R.length+' results';
+  document.getElementById('r-tb').innerHTML=list.length?list.map(r=>{
+    const s=S.find(x=>x.id==r.student_id);
+    const e=E.find(x=>x.id==r.exam_id);
+    const sub=e?SUB.find(x=>x.id==e.subject_id):null;
+    const gc=r.grade=='A'?'ga':r.grade=='B'?'gb':r.grade=='C'||r.grade=='D'?'gc':'gf';
+    return<tr><td><b>${s?s.name:'-'}</b></td><td>${e?e.name:'-'}</td><td>${sub?sub.name:'-'}</td><td>${r.marks}</td><td><span class="${gc}">${r.grade}</span></td><td><button class="btn bg" style="padding:5px 9px;font-size:12px;margin-right:5px" onclick='openM("result",${JSON.stringify(r)})'>Edit</button><button class="btn br" onclick="del('results',${r.id})">Del</button></td></tr>;
+  }).join(''):'<tr><td colspan="6" class="em">No results yet</td></tr>';
 }
 
-function renderClasses(){
-  document.getElementById('c-count').textContent=classes.length+' classes';
-  document.getElementById('c-list').innerHTML=classes.length?classes.map(c=>{
-    const cnt=students.filter(s=>s.class_id==c.id).length;
-    return<tr><td><b>${c.name}</b></td><td>${c.room||'-'}</td><td>${c.capacity||'-'}</td><td><span class="badge badge-green">${cnt} students</span></td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("class",${JSON.stringify(c)})'>Edit</button><button class="btn btn-red" onclick="del('classes',${c.id})">Del</button></td></tr>;
-  }).join(''):'<tr><td colspan="5" class="empty">No classes</td></tr>';
+async function saveStudent(){
+  const id=document.getElementById('ms-id').value;
+  const d={name:document.getElementById('ms-n').value,gender:document.getElementById('ms-g').value,class_id:parseInt(document.getElementById('ms-c').vanull,dob:document.getElementById('ms-d').valueue||null,enroll_date:document.getElementById('ms-e').value||null,phone:document.getElementById('ms-p').value,status:'active'};
+  if(!d.name){toast('Please enter name');return;}
+  if(id){await db.from('students').update(d).eq('id',id);}else{await db.from('students').insert(d);}
+  closeM('student');toast('✅ Saved!');await load();
+}
+async function saveTeacher(){
+  const id=document.getElementById('mt-id').value;
+  const d={name:document.getElementById('mt-n').value,subject:document.getElementById('mt-s').value,phone:document.getElementById('mt-p').value,email:document.getElementById('mt-e').value};
+  if(!d.name){toast('Please enter name');return;}
+  if(id){await db.from('teachers').update(d).eq('id',id);}else{await db.from('teachers').insert(d);}
+  closeM('teacher');toast('✅ Saved!');await load();
+}
+async function saveClass(){
+  const id=document.getElementById('mc-id').value;
+  const d={name:document.getElementById('mc-n').value,room:document.getElementById('mc-r').value,capacity:parseInt(document.getElementById('mc-c').value)||40};
+  if(!d.name){toast('Please enter class name');return;}
+  if(id){await db.from('classes').update(d).eq('id',id);}else{await db.from('classes').insert(d);}
+  closeM('class');toast('✅ Saved!');await load();
+}
+async function saveSubject(){
+  const id=document.getElementById('msub-id').value;
+  const d={name:document.getElementById('msub-n').value,code:document.getElementById('msub-c').value,class_id:parseInt(document.getElementById('msub-cl').vanull,teacher_id:parseInt(document.getElementById('msub-t').value)e)||null};
+  if(!d.name){toast('Please enter course name');return;}
+  if(id){await db.from('subjects').update(d).eq('id',id);}else{await db.from('subjects').insert(d);}
+  closeM('subject');toast('✅ Saved!');await load();
+}
+async function saveExam(){
+  const id=document.getElementById('me-id').value;
+  const d={name:document.getElementById('me-n').value,class_id:parseInt(document.getElementById('me-cl').value)null,subject_id:parseInt(document.getElementById('me-s').value)null,exam_date:document.getElementById('me-d').valuenull,total_marks:parseInt(document.getElementById('me-m').value)100};
+  if(!d.name){toast('Please enter exam name');return;}
+  if(id){await db.from('exams').update(d).eq('id',id);}else{await db.from('exams').insert(d);}
+  closeM('exam');toast('✅ Saved!');await load();
+}
+async function saveResult(){
+  const id=document.getElementById('mr-id').value;
+  const d={student_id:parseInt(document.getElementById('mr-st').value)null,exam_id:parseInt(document.getElementById('mr-ex').value)null,marks:parseInt(document.getElementById('mr-m').value)||0,grade:document.getElementById('mr-g').value};
+  if(id){await db.from('results').update(d).eq('id',id);}else{await db.from('results').insert(d);}
+  closeM('result');toast('✅ Saved!');await load();
+}
+async function del(table,id){
+  if(!confirm('Delete this record?'))return;
+  await db.from(table).delete().eq('id',id);
+  toast('🗑 Deleted');await load();
 }
 
-function renderSubjects(){
-  document.getElementById('sub-count').textContent=subjects.length+' courses';
-  document.getElementById('sub-list').innerHTML=subjects.length?subjects.map(s=>{
-    const c=classes.find(x=>x.id==s.class_id);
-    const t=teachers.find(x=>x.id==s.teacher_id);
-    return<tr><td><b>${s.name}</b></td><td><span class="badge badge-yellow">${s.code||'-'}</span></td><td>${c?c.name:'-'}</td><td>${t?t.name:'-'}</td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("subject",${JSON.stringify(s)})'>Edit</button><button class="btn btn-red" onclick="del('subjects',${s.id})">Del</button></td></tr>;
-  }).join(''):'<tr><td colspan="5" class="empty">No courses</td></tr>';
-}
-
-function renderExams(){
-  document.getElementById('e-count').textContent=exams.length+' exams';
-  document.getElementById('e-list').innerHTML=exams.length?exams.map(e=>{
-    const c=classes.find(x=>x.id==e.class_id);
-    const s=subjects.find(x=>x.id==e.subject_id);
-    return<tr><td><b>${e.name}</b></td><td>${c?c.name:'-'}</td><td>${s?s.name:'-'}</td><td>${e.exam_date||'-'}</td><td><span class="badge badge-blue">${e.total_marks}</span></td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("exam",${JSON.stringify(e)})'>Edit</button><button class="btn btn-red" onclick="del('exams',${e.id})">Del</button></td></tr>;
-  }).join(''):'<tr><td colspan="6" class="empty">No exams</td></tr>';
-}
-  function renderResults(){
-  const ef=document.getElementById('r-exam-filter').value;
-  const cf=document.getElementById('r-class-filter').value;
-  let list=results;
-  if(ef)list=list.filter(r=>r.exam_id==ef);
-  document.getElementById('r-count').textContent=results.length+' results';
-  document.getElementById('r-list').innerHTML=list.length?list.map(r=>{
-    const s=students.find(x=>x.id==r.student_id);
-    const e=exams.find(x=>x.id==r.exam_id);
-    const sub=e?subjects.find(x=>x.id==e.subject_id):null;
-    const gc=r.grade=='A'?'grade-a':r.grade=='B'?'grade-b':r.grade=='C'||r.grade=='D'?'grade-c':'grade-f';
-    return<tr><td><b>${s?s.name:'-'}</b></td><td>${e?e.name:'-'}</td><td>${sub?sub.name:'-'}</td><td>${r.marks}</td><td><span class="${gc}">${r.grade}</span></td><td style="display:flex;gap:6px"><button class="btn btn-gray" style="padding:5px 10px;font-size:12px" onclick='openM("result",${JSON.stringify(r)})'>Edit</button><button class="btn btn-red" onclick="del('results',${r.id})">Del</button></td></tr>;
-  }).join(''):'<tr><td colspan="6" class="empty">No results</td></tr>';
-}
-
-async function saveStudent(){const id=document.getElementById('ms-id').value;const d={name:document.getElementById('ms-name').value,gender:document.getElementById('ms-gender').value,class_id:parseInt(document.getElementById('ms-class').value)null,dob:document.getElementById('ms-dob').valuenull,enroll_date:document.getElementById('ms-enroll').value||null,phone:document.getElementById('ms-phone').value,status:'active'};if(!d.name){toast('Please enter name',false);return;}if(id){await sb.from('students').update(d).eq('id',id);}else{await sb.from('students').insert(d);}closeM('student');toast('✅ Saved!');await loadAll();}
-async function saveTeacher(){const id=document.getElementById('mt-id').value;const d={name:document.getElementById('mt-name').value,subject:document.getElementById('mt-subject').value,phone:document.getElementById('mt-phone').value,email:document.getElementById('mt-email').value};if(!d.name){toast('Please enter name',false);return;}if(id){await sb.from('teachers').update(d).eq('id',id);}else{await sb.from('teachers').insert(d);}closeM('teacher');toast('✅ Saved!');await loadAll();}
-async function saveClass(){const id=document.getElementById('mc-id').value;const d={name:document.getElementById('mc-name').value,room:document.getElementById('mc-room').value,capacity:parseInt(document.getElementById('mc-cap').value)||40};if(!d.name){toast('Please enter class name',false);return;}if(id){await sb.from('classes').update(d).eq('id',id);}else{await sb.from('classes').insert(d);}closeM('class');toast('✅ Saved!');await loadAll();}
-async function saveSubject(){const id=document.getElementById('msub-id').value;const d={name:document.getElementById('msub-name').value,code:document.getElementById('msub-code').value,class_id:parseInt(document.getElementById('msub-class').value)null,teacher_id:parseInt(document.getElementById('msub-teacher').value)null};if(!d.name){toast('Please enter course name',false);return;}if(id){await sb.from('subjects').update(d).eq('id',id);}else{await sb.from('subjects').insert(d);}closeM('subject');toast('✅ Saved!');await loadAll();}
-async function saveExam(){const id=document.getElementById('me-id').value;const d={name:document.getElementById('me-name').value,class_id:parseInt(document.getElementById('me-class').value)null,subject_id:parseInt(document.getElementById('me-subject').value)null,exam_date:document.getElementById('me-date').valuenull,total_marks:parseInt(document.getElementById('me-marks').value)100};if(!d.name){toast('Please enter exam name',false);return;}if(id){await sb.from('exams').update(d).eq('id',id);}else{await sb.from('exams').insert(d);}closeM('exam');toast('✅ Saved!');await loadAll();}
-  async function saveResult(){const id=document.getElementById('mr-id').value;const d={student_id:parseInt(document.getElementById('mr-student').value)null,exam_id:parseInt(document.getElementById('mr-exam').value)null,marks:parseInt(document.getElementById('mr-marks').value)||0,grade:document.getElementById('mr-grade').value};if(id){await sb.from('results').update(d).eq('id',id);}else{await sb.from('results').insert(d);}closeM('result');toast('✅ Saved!');await loadAll();}
-async function del(table,id){if(!confirm('Delete this record?'))return;await sb.from(table).delete().eq('id',id);toast('🗑 Deleted');await loadAll();}
-
-loadAll();
+load();
 </script>
 </body>
 </html>
